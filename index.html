@@ -9,12 +9,14 @@
 </head>
 <body>
   <h1>NOTAMap</h1>
-  <h5>Government of Fred (c) 2021 Department of Cartographical Intelligence</h5>
   <form>
-    <label for="raw">NOTAM Area:</label><br>
-    <input type="text" id="raw" name="raw"> <button type="button" onclick="plot()">Plot Area</button><br>
-    <label for="focus">NOTAM Single Point:</label><br>
-    <input type="text" id="focus" name="focus"> <input type="text" id="radius" name="radius"> <button type="button" onclick="plot()">Plot Radius</button>
+    <b><label for="raw"> Area:</label></b><br>
+    <input type="text" id="raw" name="raw" placeholder = "Example: 515344N1415228E-520822N1413427E-521236N1422054E" style="width: 350px"> <button type="button" onclick="plot()">Plot Area</button><br>
+    <p>Enter a string of geographic coordinates in the xxxxxxx(N/S)xxxxxxx(E/W) format, seperated by a '-' with no spaces. You can copy directly from the area expression of ICAO NOTAMs, provided they are in this format </p>
+     <b><label for="focus"> Single Point with Radius:</label></b><br>
+    <input type="text" id="focus" name="focus" placeholder = "Example: 515344N1415228E" style="width: 150px"> <input type="text" id="radius" name="radius" placeholder = "Example: 0.1" style="width: 75px"> <button type="button" onclick="plotRadius()">Plot Radius</button>
+    <p>Enter a single coordinate in the xxxxxxx(N/S)xxxxxxx(E/W) format, and a radius in kilometres expressed as a decimal</p>
+
 
 
 
@@ -124,22 +126,39 @@
   }
 
 
+function plotRadius(){
 
 
-  
+var centrePoint = document.getElementById("focus").value;
+var radius = document.getElementById("radius").value;
+var point = ICAOConvertToDec(centrePoint)[0]
+console.log(point)
+var radius_m = radius * 1000
+L.marker(point).addTo(mymap)
+L.circle(point, {radius: radius_m}).addTo(mymap)
+mymap.flyTo(point, 15)
+
+
+
+
+
+
+
+}
+
+
   function plot(){
     var str = document.getElementById("raw").value;
     console.log(str)
-    console.log('log')
     var points = ICAOConvertToDec(str)
     var polygon = L.polygon(points)
     var focalPoint = polygon.getBounds().getCenter()
     console.log(focalPoint)
     polygon.addTo(mymap);
-    mymap.flyTo(focalPoint, 8)
+    mymap.flyTo(focalPoint, 10)
   }
   // initialize the map
-  var mymap = L.map('map').setView([51.61, -1.16], 13);
+  var mymap = L.map('map').setView([51.61, -1.16], 3);
 
   // load a tile layer
   L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
@@ -150,9 +169,11 @@
     zoomOffset: -1,
     accessToken: 'pk.eyJ1IjoiZnJlZGRsZXMiLCJhIjoiY2tsODlhNmFtMGRtZTJvcnZwaTlrNTJ6aiJ9.1w6E0ssZId7sdM-h7w7Uxg'
 }).addTo(mymap);
+L.control.scale().addTo(mymap);
 
 
   </script>
 </body>
 </html>
+	
 	
