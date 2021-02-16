@@ -1,0 +1,158 @@
+<html>
+<head>
+  <title>NOTAMap</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <style>
+    #map{ height: 70% }
+  </style>
+</head>
+<body>
+  <h1>NOTAMap</h1>
+  <h5>Government of Fred (c) 2021 Department of Cartographical Intelligence</h5>
+  <form>
+    <label for="raw">NOTAM Area:</label><br>
+    <input type="text" id="raw" name="raw"> <button type="button" onclick="plot()">Plot Area</button><br>
+    <label for="focus">NOTAM Single Point:</label><br>
+    <input type="text" id="focus" name="focus"> <input type="text" id="radius" name="radius"> <button type="button" onclick="plot()">Plot Radius</button>
+
+
+
+
+  </form>
+  <div id="map"></div>
+
+  <script>
+
+
+
+  function decimalStrConvert(str, dIndex, hemisphere){
+
+    var sanitisedStr = str.trim()
+    console.log(sanitisedStr)
+
+
+    var preDStr = sanitisedStr.substring(0, dIndex).trim()
+    var postDStr = sanitisedStr.substring(dIndex)
+    var base = preDStr.concat('.')
+    var finalStr =  base.concat(postDStr)
+    
+    var basic_float = parseFloat(finalStr)
+
+    if(hemisphere == 'S' || hemisphere == 'W'){
+      return basic_float * -1
+    } else{
+      return basic_float
+    }
+
+
+    
+  }
+  function segmentToDec(text){
+    var lat_compass = ''
+    var lon_compass = ''
+    var lat_value = ''
+    var lon_value = ''
+
+    for(i = 0; i < text.length; i++){
+
+        if(text[i] == 'N' || text[i] == 'S'){
+          console.log('latitiude hemisphere determined')
+          lat_compass = text[i]
+        } else if(lat_compass == ''){
+
+        if (lat_value != ''){
+          var temp = lat_value
+          lat_value = temp.concat(text[i])
+
+        } else{
+          
+          lat_value = text[i]
+
+        }
+        } else if(lon_compass == ''){
+
+          if (text[i] == 'E' || text[i] == 'W'){
+            console.log('longitude hemisphere determibed')
+            lon_compass = text[i]
+
+
+          } else {
+
+          if (lon_value != ''){
+            var temp = lon_value
+            lon_value = temp.concat(text[i])
+          } else {
+            lon_value = text[i]
+          }
+
+        }
+
+
+        }
+
+    }
+   
+   
+
+    var decimal_latitude = decimalStrConvert(lat_value, 2, lat_compass)
+    var decimal_longitude = decimalStrConvert(lon_value, 3, lon_compass)
+
+    console.log(decimal_latitude)
+    console.log(decimal_longitude)
+
+    return [decimal_latitude, decimal_longitude]
+
+  }
+
+  function ICAOConvertToDec(txt){
+    //return array of dec_coord arrays
+    
+    var components = txt.split('-')
+    var decimalSets = []
+    components.forEach(element => {
+      decimalSets.push(segmentToDec(element))
+    });
+    
+    console.log(decimalSets)
+    return decimalSets
+
+
+
+
+
+  }
+
+
+
+
+  
+  function plot(){
+    var str = document.getElementById("raw").value;
+    console.log(str)
+    console.log('log')
+    var points = ICAOConvertToDec(str)
+    var polygon = L.polygon(points)
+    var focalPoint = polygon.getBounds().getCenter()
+    console.log(focalPoint)
+    polygon.addTo(mymap);
+    mymap.flyTo(focalPoint, 8)
+  }
+  // initialize the map
+  var mymap = L.map('map').setView([51.61, -1.16], 13);
+
+  // load a tile layer
+  L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+    maxZoom: 18,
+    id: 'mapbox/streets-v11',
+    tileSize: 512,
+    zoomOffset: -1,
+    accessToken: 'pk.eyJ1IjoiZnJlZGRsZXMiLCJhIjoiY2tsODlhNmFtMGRtZTJvcnZwaTlrNTJ6aiJ9.1w6E0ssZId7sdM-h7w7Uxg'
+}).addTo(mymap);
+
+
+  </script>
+</body>
+</html>
+	
